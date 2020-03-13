@@ -49,7 +49,7 @@ class testPlugin {
 
   _createDialog () {
     return {
-      title: 'Test Plugin',
+      title: 'Insert/edit image gallery',
       initialData: {},
       body: {
         type: 'tabpanel',
@@ -58,7 +58,7 @@ class testPlugin {
       buttons: [
         {
           type: 'submit',
-          text: 'Submit',
+          text: 'Confirm',
           primary: true,
         },
         {
@@ -76,18 +76,53 @@ class testPlugin {
 
     return {
       name: `image-${this.state.numImages}`,
-      title: `${this.state.numImages} - TEST LONG TITLE`,
+      title: `Image ${this.state.numImages}`,
       items: [
-        {
-          type: 'urlinput',
-          filetype: 'image',
-          name: `image-${this.state.numImages}_url`,
-          label: 'Image URL',
-        },
         {
           type: 'button',
           text: 'Add Image',
           name: 'addImage',
+        },
+        {
+          type: 'button',
+          text: 'Delete Image',
+          name: 'deleteImage',
+          disabled: this.state.numImages === 1 ? true : false,
+        },
+        {
+          type: 'urlinput',
+          filetype: 'image',
+          name: `image-${this.state.numImages}_url`,
+          label: 'Source URL',
+        },
+        {
+          type: 'urlinput',
+          filetype: 'image',
+          name: `image-${this.state.numImages}_thumbnail-url`,
+          label: 'Thumbnail URL',
+        },
+        {
+          type: 'input',
+          inputMode: 'text',
+          name: `image-${this.state.numImages}_alt-text`,
+          label: 'Alt Text',
+        },
+        {
+          type: 'checkbox',
+          name: `image-${this.state.numImages}_click-to-zoom`,
+          label: 'Click-to-zoom',
+        },        
+        {
+          type: 'input',
+          inputMode: 'text',
+          name: `image-${this.state.numImages}_headline`,
+          label: 'Related headline<sup>*</sup>',
+        },
+        {
+          type: 'input',
+          inputMode: 'text',
+          name: `image-${this.state.numImages}_description`,
+          label: 'Related description<sup>*</sup>',
         }
       ],
     }
@@ -95,6 +130,18 @@ class testPlugin {
 
   _addImage (dialogApi, details) {
     this.dialog.body.tabs.push(this._createImageTab());
+    if (dialogApi) {
+      this._updateData(dialogApi, dialogApi.getData());
+      dialogApi.showTab(`image-${this.state.numImages}`);
+    }
+  }
+
+  _deleteImage (dialogApi, details) {
+    if (this.dialog.body.tabs.length === 1) {
+      return;
+    }
+    this.state.numImages--;
+    this.dialog.body.tabs.pop();
     if (dialogApi) {
       this._updateData(dialogApi, dialogApi.getData());
       dialogApi.showTab(`image-${this.state.numImages}`);
@@ -111,6 +158,8 @@ class testPlugin {
     switch(details.name) {
       case 'addImage':
         return this._addImage(dialogApi, details);
+      case 'deleteImage':
+        return this._deleteImage(dialogApi, details);
     }
   }
 
