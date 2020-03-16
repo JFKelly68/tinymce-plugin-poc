@@ -20,6 +20,7 @@ class testPlugin {
   _init () {
     this.state = {
       numImages: 0,
+      currentTabIndex: 0
     };
     
     this.dialog = this._createDialog();
@@ -68,6 +69,7 @@ class testPlugin {
       ], 
       onAction: this._onAction.bind(this),
       onSubmit: this._onSubmit.bind(this),
+      onTabChange: this._onTabChange.bind(this),
     }
   }
 
@@ -87,7 +89,6 @@ class testPlugin {
           type: 'button',
           text: 'Delete Image',
           name: 'deleteImage',
-          disabled: this.state.numImages === 1 ? true : false,
         },
         {
           type: 'urlinput',
@@ -130,27 +131,53 @@ class testPlugin {
 
   _addImage (dialogApi, details) {
     this.dialog.body.tabs.push(this._createImageTab());
+    this.state.currentTabIndex = this.state.numImages - 1;
     if (dialogApi) {
       this._updateData(dialogApi, dialogApi.getData());
       dialogApi.showTab(`image-${this.state.numImages}`);
     }
+    console.log("add: ", this.state.currentTabIndex);
   }
 
-  _deleteImage (dialogApi, details) {
+  _deleteImage (dialogApi) {
     if (this.dialog.body.tabs.length === 1) {
       return;
     }
-    this.state.numImages--;
-    this.dialog.body.tabs.pop();
-    if (dialogApi) {
-      this._updateData(dialogApi, dialogApi.getData());
-      dialogApi.showTab(`image-${this.state.numImages}`);
+
+    const currentTabIndex = this.state.currentTabIndex;
+    this.dialog.body.tabs.splice(currentTabIndex, 1);
+
+    if (currentTabIndex + 1 === this.state.numImages) {
+      this.state.numImages--;
+      if (dialogApi) {
+        this._updateData(dialogApi, dialogApi.getData());
+        this.state.currentTabIndex = this.state.numImages - 1;
+        dialogApi.showTab(`image-${this.state.currentTabIndex + 1}`);
+      }
+    } else {
+      this.state.numImages--;
+      this._updateTabNumbers();
+      if (dialogApi) {
+        this._updateData(dialogApi, dialogApi.getData());
+        this.state.currentTabIndex = currentTabIndex;
+        dialogApi.showTab(`image-${this.state.currentTabIndex + 1}`);
+      }
     }
+    console.log("delete: ", this.state.currentTabIndex);
+  }
+
+  _updateTabNumbers() {
+    this.dialog.body.tabs.forEach((obj, index) => {
+      const count = index + 1
+      obj.name = `image-${count}`;
+      obj.title = `Image ${count}`;
+    });
   }
 
   _updateData (dialogApi, data) {
     this.dialog.initialData = data;
     dialogApi.redial(this.dialog);
+    
     return this.dialog.initialData;
   }
 
@@ -170,6 +197,11 @@ class testPlugin {
     this.editor.insertContent(el.outerHTML);
     this._updateData(dialogApi, {});
     this._closeDialog();
+  }
+
+  _onTabChange (dialogApi, details) {
+    this.state.currentTabIndex = parseInt(details.newTabName.split('-').pop()) - 1;
+    console.log("change: ", this.state.currentTabIndex);
   }
 
   _register () {
