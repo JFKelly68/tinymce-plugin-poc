@@ -221,15 +221,48 @@ class testPlugin {
   }
 
   _createEditorPlaceholder (data) {
-    const el = document.createElement('IMG');
+    const rootEl = document.createElement('DIV');
+    rootEl.classList.add('gallery-component');
 
-    el.classList.add('image-gallery');
-    el.src = data['image-1_url'].value;
-    for (let key in data) {
-      el.dataset[key] = JSON.stringify(data[key]);
-    }
+    const ul = document.createElement('UL');
+    ul.classList.add('gallery-component-images');
+    rootEl.appendChild(ul);
 
-    return el;
+    this.dialog.body.tabs.forEach((tab, index) => {
+      const li = document.createElement('LI');
+      li.classList.add('gallery-component-slide-image');
+      li.dataset['slideIndex'] = index;
+      ul.appendChild(li);
+
+      const img = document.createElement('IMG');
+      const imageNumber = index + 1;
+      img.src = data[`image-${imageNumber}_thumbnail-url`].value;
+      img.alt = data[`image-${imageNumber}_alt-text`];
+      img.dataset['dataFullSizeUrl'] = data[`image-${imageNumber}_url`].value;
+      img.dataset['dataZoom'] = data[`image-${imageNumber}_click-to-zoom`];
+      li.appendChild(img);
+
+      const infoContainerDiv = document.createElement('DIV');
+      infoContainerDiv.classList.add('gallery-component-slide-info-container');
+      li.appendChild(infoContainerDiv);
+
+      const titleDiv = document.createElement('DIV');
+      titleDiv.classList.add('gallery-component-slide-heading');
+      titleDiv.innerText = data[`image-${imageNumber}_headline`];
+      infoContainerDiv.appendChild(titleDiv);
+
+      const descriptionDiv = document.createElement('P');
+      titleDiv.classList.add('gallery-component-slide-description');
+      descriptionDiv.innerText = data[`image-${imageNumber}_description`];
+      infoContainerDiv.appendChild(descriptionDiv);
+    });
+
+    // el.src = data['image-1_url'].value;
+    // for (let key in data) {
+    //   el.dataset[key] = JSON.stringify(data[key]);
+    // }
+
+    return rootEl;
   }
 
   _openDialog () {
